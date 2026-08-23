@@ -1,22 +1,66 @@
+import { useMemo, useState } from 'react'
 import PageHeader from '../components/layout/PageHeader'
 
-const categories = ['Breakfast', 'Main Course', 'Beverages', 'Desserts']
+const categories = ['All', 'Breakfast', 'Main Course', 'Beverages', 'Desserts']
 
 const foodItems = [
-  { name: 'Chicken Fried Rice', price: 'LKR 1,800' },
-  { name: 'Chicken Kottu', price: 'LKR 1,600' },
-  { name: 'String Hoppers', price: 'LKR 900' },
-  { name: 'Tea', price: 'LKR 400' },
-  { name: 'Grilled Fish', price: 'LKR 2,200' },
-  { name: 'Fresh Lime Juice', price: 'LKR 500' },
-  { name: 'Fruit Plate', price: 'LKR 1,200' },
-  { name: 'Watalappam', price: 'LKR 700' },
+  { name: 'Chicken Fried Rice', price: 1800, category: 'Main Course' },
+  { name: 'Chicken Kottu', price: 1600, category: 'Main Course' },
+  { name: 'String Hoppers', price: 900, category: 'Breakfast' },
+  { name: 'Tea', price: 400, category: 'Beverages' },
+  { name: 'Grilled Fish', price: 2200, category: 'Main Course' },
+  { name: 'Fresh Lime Juice', price: 500, category: 'Beverages' },
+  { name: 'Fruit Plate', price: 1200, category: 'Desserts' },
+  { name: 'Watalappam', price: 700, category: 'Desserts' },
 ]
 
 function Restaurant() {
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [cart, setCart] = useState([
+    { ...foodItems[1], quantity: 1 },
+    { ...foodItems[3], quantity: 1 },
+  ])
+  const [room, setRoom] = useState('305')
+  const [orderNote, setOrderNote] = useState('')
+  const [orderMessage, setOrderMessage] = useState('')
+
+  const visibleItems = useMemo(
+    () => selectedCategory === 'All'
+      ? foodItems
+      : foodItems.filter((item) => item.category === selectedCategory),
+    [selectedCategory],
+  )
+
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const formatPrice = (price) => `LKR ${price.toLocaleString()}`
+
+  function addToCart(item) {
+    setOrderMessage('')
+    setCart((currentCart) => {
+      const existingItem = currentCart.find((cartItem) => cartItem.name === item.name)
+      if (existingItem) {
+        return currentCart.map((cartItem) => cartItem.name === item.name
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem)
+      }
+      return [...currentCart, { ...item, quantity: 1 }]
+    })
+  }
+
+  function changeQuantity(itemName, change) {
+    setCart((currentCart) => currentCart
+      .map((item) => item.name === itemName ? { ...item, quantity: item.quantity + change } : item)
+      .filter((item) => item.quantity > 0))
+  }
+
+  function placeOrder() {
+    if (!cart.length) return
+    setOrderMessage(`Order sent to room ${room}`)
+  }
+
   return (
     <div className="page-stack">
-      <PageHeader title="Restaurant" subtitle="Menu and in-room dining overview" />
+      <PageHeader title="Restaurant" subtitle="Build and send an in-room dining order" />
 
       <div className="restaurant-layout">
         <div className="panel">
@@ -25,20 +69,26 @@ function Restaurant() {
           </div>
           <div className="category-list">
             {categories.map((category) => (
-              <button key={category} type="button" className="category-chip active">
+              <button
+                key={category}
+                type="button"
+                className={`category-chip ${selectedCategory === category ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(category)}
+              >
                 {category}
               </button>
             ))}
           </div>
 
           <div className="menu-grid">
-            {foodItems.map((item) => (
+            {visibleItems.map((item) => (
               <div key={item.name} className="menu-item">
                 <div>
                   <strong>{item.name}</strong>
+                  <span className="menu-category">{item.category}</span>
                 </div>
-                <span>{item.price}</span>
-                <button type="button" className="secondary-button small-button">Add</button>
+                <span className="menu-price">{formatPrice(item.price)}</span>
+                <button type="button" className="secondary-button small-button" onClick={() => addToCart(item)}>Add to order</button>
               </div>
             ))}
           </div>
@@ -46,30 +96,40 @@ function Restaurant() {
 
         <div className="panel order-panel">
           <div className="panel-heading">
-            <h3>Order Summary</h3>
+            <h3>Current order</h3>
+            <p className="muted-text">{cart.length ? `${cart.reduce((sum, item) => sum + item.quantity, 0)} items selected` : 'No items selected'}</p>
           </div>
 
           <div className="order-items">
-            <div className="order-row">
-              <span>Chicken Kottu</span>
-              <strong>LKR 1,600</strong>
-            </div>
-            <div className="order-row">
-              <span>Tea</span>
-              <strong>LKR 400</strong>
-            </div>
-            <div className="order-row">
-              <span>String Hoppers</span>
-              <strong>LKR 900</strong>
-            </div>
+            {cart.map((item) => (
+              <div className="order-row" key={item.name}>
+                <div><span>{item.name}</span><small>{formatPrice(item.price)} each</small></div>
+                <div className="quantity-control">
+                  <button type="button" onClick={() => changeQuantity(item.name, -1)} aria-label={`Remove one ${item.name}`}>-</button>
+                  <strong>{item.quantity}</strong>
+                  <button type="button" onClick={() => changeQuantity(item.name, 1)} aria-label={`Add one ${item.name}`}>+</button>
+                </div>
+              </div>
+            ))}
+            {!cart.length && <p className="empty-state">Choose a menu item to begin.</p>}
           </div>
 
           <div className="order-total">
             <span>Total</span>
-            <strong>LKR 2,900</strong>
+            <strong>{formatPrice(total)}</strong>
           </div>
 
-          <button type="button" className="primary-button full-button">Place Order</button>
+          <label className="field-label" htmlFor="room-number">Deliver to room</label>
+          <select id="room-number" value={room} onChange={(event) => setRoom(event.target.value)}>
+            <option>305</option>
+            <option>210</option>
+            <option>118</option>
+            <option>408</option>
+          </select>
+          <label className="field-label" htmlFor="order-note">Special instructions</label>
+          <textarea id="order-note" value={orderNote} onChange={(event) => setOrderNote(event.target.value)} placeholder="Optional note for the kitchen" rows="2" />
+          <button type="button" className="primary-button full-button" onClick={placeOrder} disabled={!cart.length}>Place order</button>
+          {orderMessage && <p className="success-message" role="status">{orderMessage}</p>}
         </div>
       </div>
     </div>
