@@ -3,20 +3,48 @@ import PageHeader from '../components/layout/PageHeader'
 import { users } from '../data/users'
 
 function Users() {
+  const [userRecords, setUserRecords] = useState(users)
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('All Roles')
   const [statusFilter, setStatusFilter] = useState('All Status')
   const [selectedUser, setSelectedUser] = useState(null)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [newUserName, setNewUserName] = useState('')
 
-  const filteredUsers = useMemo(() => users.filter((user) => {
+  const filteredUsers = useMemo(() => userRecords.filter((user) => {
     const search = searchTerm.toLowerCase()
     const matchesSearch = [user.name, user.email, user.role].some((value) => value.toLowerCase().includes(search))
     return matchesSearch && (roleFilter === 'All Roles' || user.role === roleFilter) && (statusFilter === 'All Status' || user.status === statusFilter)
-  }), [searchTerm, roleFilter, statusFilter])
+  }), [userRecords, searchTerm, roleFilter, statusFilter])
+
+  const clearFilters = () => {
+    setSearchTerm('')
+    setRoleFilter('All Roles')
+    setStatusFilter('All Status')
+  }
+
+  const addUser = (event) => {
+    event.preventDefault()
+    const name = newUserName.trim()
+    if (!name) return
+    setUserRecords((currentUsers) => [...currentUsers, {
+      id: Date.now(), name, email: 'Pending email', role: 'Receptionist', status: 'Away', lastActive: 'Never',
+    }])
+    setNewUserName('')
+    setShowAddForm(false)
+  }
 
   return (
     <div className="page-stack">
-      <PageHeader title="Users" subtitle="System access and team activity" actions={<button type="button" className="primary-button">Add user</button>} />
+      <PageHeader title="Users" subtitle="System access and team activity" actions={<button type="button" className="primary-button" onClick={() => setShowAddForm((visible) => !visible)}>{showAddForm ? 'Close form' : 'Add user'}</button>} />
+
+      {showAddForm && (
+        <form className="quick-form" onSubmit={addUser}>
+          <div><strong>Add system user</strong><span>Create the account first, then configure its permissions.</span></div>
+          <input value={newUserName} onChange={(event) => setNewUserName(event.target.value)} placeholder="User full name" aria-label="User full name" autoFocus required />
+          <button type="submit" className="primary-button">Create user</button>
+        </form>
+      )}
 
       <div className="summary-boxes">
         <div className="summary-box"><span>Total users</span><strong>{users.length}</strong><small>System accounts</small></div>
@@ -40,7 +68,7 @@ function Users() {
             <option>Away</option>
           </select>
         </div>
-        <div className="table-caption">Showing {filteredUsers.length} of {users.length} system users</div>
+        <div className="table-caption"><span>Showing {filteredUsers.length} of {userRecords.length} system users</span>{(searchTerm || roleFilter !== 'All Roles' || statusFilter !== 'All Status') && <button type="button" className="text-button" onClick={clearFilters}>Clear filters</button>}</div>
         <div className="table-wrapper">
           <table>
             <thead>

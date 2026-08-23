@@ -4,28 +4,55 @@ import GuestTable from '../components/guests/GuestTable'
 import { guests } from '../data/guests'
 
 function Guests() {
+  const [guestRecords, setGuestRecords] = useState(guests)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('All Status')
   const [selectedGuest, setSelectedGuest] = useState(null)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [newGuestName, setNewGuestName] = useState('')
 
-  const filteredGuests = useMemo(() => guests.filter((guest) => {
+  const filteredGuests = useMemo(() => guestRecords.filter((guest) => {
     const search = searchTerm.toLowerCase()
     const matchesSearch = [guest.name, guest.contact, guest.idNumber, guest.room].some((value) => value.toLowerCase().includes(search))
     return matchesSearch && (statusFilter === 'All Status' || guest.status === statusFilter)
-  }), [searchTerm, statusFilter])
+  }), [guestRecords, searchTerm, statusFilter])
+
+  const clearFilters = () => {
+    setSearchTerm('')
+    setStatusFilter('All Status')
+  }
+
+  const addGuest = (event) => {
+    event.preventDefault()
+    const name = newGuestName.trim()
+    if (!name) return
+    setGuestRecords((currentGuests) => [...currentGuests, {
+      id: Date.now(), name, contact: 'Add contact details', idNumber: 'Pending', room: 'Unassigned', checkIn: 'Pending', checkOut: 'Pending', status: 'Pending',
+    }])
+    setNewGuestName('')
+    setShowAddForm(false)
+  }
 
   return (
     <div className="page-stack">
       <PageHeader
         title="Guests"
         subtitle="Guest profile overview and current stays"
-        actions={<button type="button" className="primary-button">Add Guest</button>}
+        actions={<button type="button" className="primary-button" onClick={() => setShowAddForm((visible) => !visible)}>{showAddForm ? 'Close form' : 'Add Guest'}</button>}
       />
 
+      {showAddForm && (
+        <form className="quick-form" onSubmit={addGuest}>
+          <div><strong>Add guest profile</strong><span>Start with a name and complete the stay details later.</span></div>
+          <input value={newGuestName} onChange={(event) => setNewGuestName(event.target.value)} placeholder="Guest full name" aria-label="Guest full name" autoFocus required />
+          <button type="submit" className="primary-button">Create profile</button>
+        </form>
+      )}
+
       <div className="summary-boxes">
-        <div className="summary-box"><span>Total guests</span><strong>{guests.length}</strong><small>Registered profiles</small></div>
-        <div className="summary-box summary-positive"><span>Checked in</span><strong>{guests.filter((guest) => guest.status === 'Checked In').length}</strong><small>Currently staying</small></div>
-        <div className="summary-box summary-warning"><span>Arrivals pending</span><strong>{guests.filter((guest) => guest.status === 'Confirmed' || guest.status === 'Pending').length}</strong><small>Needs attention</small></div>
+        <div className="summary-box"><span>Total guests</span><strong>{guestRecords.length}</strong><small>Registered profiles</small></div>
+        <div className="summary-box summary-positive"><span>Checked in</span><strong>{guestRecords.filter((guest) => guest.status === 'Checked In').length}</strong><small>Currently staying</small></div>
+        <div className="summary-box summary-warning"><span>Arrivals pending</span><strong>{guestRecords.filter((guest) => guest.status === 'Confirmed' || guest.status === 'Pending').length}</strong><small>Needs attention</small></div>
       </div>
 
       <div className="panel">
@@ -42,7 +69,7 @@ function Guests() {
             <option>Checked Out</option>
           </select>
         </div>
-        <div className="table-caption">Showing {filteredGuests.length} of {guests.length} guest profiles</div>
+        <div className="table-caption"><span>Showing {filteredGuests.length} of {guestRecords.length} guest profiles</span>{(searchTerm || statusFilter !== 'All Status') && <button type="button" className="text-button" onClick={clearFilters}>Clear filters</button>}</div>
         <GuestTable guests={filteredGuests} onView={setSelectedGuest} />
         {selectedGuest && (
           <div className="profile-detail" role="status">

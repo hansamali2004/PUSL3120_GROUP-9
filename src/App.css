@@ -346,9 +346,42 @@ button {
 }
 
 .table-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   color: var(--muted);
   font-size: 0.82rem;
   margin: 16px 0 8px;
+}
+
+.quick-form {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 18px;
+  border: 1px solid var(--primary-soft);
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.quick-form > div {
+  display: grid;
+  gap: 3px;
+  margin-right: auto;
+}
+
+.quick-form span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.quick-form input {
+  min-width: 220px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: white;
 }
 
 .empty-state {
