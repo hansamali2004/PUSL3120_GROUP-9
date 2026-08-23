@@ -1,6 +1,11 @@
 function GuestTable({ guests, onView }) {
+  function getInitials(name) {
+    return name.split(' ').map((part) => part[0]).join('').slice(0, 2)
+  }
+
   return (
-    <div className="table-wrapper">
+    <div className="panel">
+      <div className="table-wrapper">
         <table>
           <thead>
             <tr>
@@ -15,12 +20,15 @@ function GuestTable({ guests, onView }) {
             </tr>
           </thead>
           <tbody>
-            {guests.map((guest) => (
+            {guests.length === 0 ? <tr><td colSpan="8" className="empty-state">No guest profiles match these filters.</td></tr> : guests.map((guest) => (
               <tr key={guest.id}>
                 <td>
                   <div className="identity-cell">
-                    <div className="avatar">{guest.name.split(' ').map((part) => part[0]).join('')}</div>
-                    <strong>{guest.name}</strong>
+                    <span className="avatar">{getInitials(guest.name)}</span>
+                    <div>
+                      <strong className="user-name">{guest.name}</strong>
+                      <span className="table-secondary">Guest profile</span>
+                    </div>
                   </div>
                 </td>
                 <td>{guest.contact}</td>
@@ -32,13 +40,13 @@ function GuestTable({ guests, onView }) {
                   <span className={`status-badge ${guest.status.toLowerCase().replace(/\s+/g, '-')}`}>{guest.status}</span>
                 </td>
                 <td>
-                    <button type="button" className="secondary-button small-button" onClick={() => onView(guest)}>View profile</button>
+                    <button type="button" className="secondary-button table-action" onClick={() => onView(guest)}>View profile</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-          {!guests.length && <p className="empty-state">No guest profiles match these filters.</p>}
+      </div>
     </div>
   )
 }
