@@ -1,12 +1,46 @@
+import { useMemo, useState } from 'react'
 import PageHeader from '../components/layout/PageHeader'
 import { users } from '../data/users'
 
 function Users() {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [roleFilter, setRoleFilter] = useState('All Roles')
+  const [statusFilter, setStatusFilter] = useState('All Status')
+  const [selectedUser, setSelectedUser] = useState(null)
+
+  const filteredUsers = useMemo(() => users.filter((user) => {
+    const search = searchTerm.toLowerCase()
+    const matchesSearch = [user.name, user.email, user.role].some((value) => value.toLowerCase().includes(search))
+    return matchesSearch && (roleFilter === 'All Roles' || user.role === roleFilter) && (statusFilter === 'All Status' || user.status === statusFilter)
+  }), [searchTerm, roleFilter, statusFilter])
+
   return (
     <div className="page-stack">
-      <PageHeader title="Users" subtitle="System access and team activity" />
+      <PageHeader title="Users" subtitle="System access and team activity" actions={<button type="button" className="primary-button">Add user</button>} />
+
+      <div className="summary-boxes">
+        <div className="summary-box"><span>Total users</span><strong>{users.length}</strong><small>System accounts</small></div>
+        <div className="summary-box summary-positive"><span>Active now</span><strong>{users.filter((user) => user.status === 'Active').length}</strong><small>Ready to work</small></div>
+        <div className="summary-box summary-warning"><span>Needs review</span><strong>{users.filter((user) => user.status !== 'Active').length}</strong><small>Away or inactive</small></div>
+      </div>
 
       <div className="panel">
+        <div className="toolbar row-gap">
+          <div className="search-box">
+            <span>⌕</span>
+            <input type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search name, email or role" aria-label="Search system users" />
+          </div>
+          <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)} aria-label="Filter users by role">
+            <option>All Roles</option>
+            {[...new Set(users.map((user) => user.role))].map((role) => <option key={role}>{role}</option>)}
+          </select>
+          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filter users by status">
+            <option>All Status</option>
+            <option>Active</option>
+            <option>Away</option>
+          </select>
+        </div>
+        <div className="table-caption">Showing {filteredUsers.length} of {users.length} system users</div>
         <div className="table-wrapper">
           <table>
             <thead>
@@ -20,9 +54,14 @@ function Users() {
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <tr key={user.id}>
-                  <td>{user.name}</td>
+                  <td>
+                    <div className="identity-cell">
+                      <div className="avatar">{user.name.split(' ').map((part) => part[0]).join('')}</div>
+                      <strong>{user.name}</strong>
+                    </div>
+                  </td>
                   <td>{user.email}</td>
                   <td>{user.role}</td>
                   <td>
@@ -30,13 +69,26 @@ function Users() {
                   </td>
                   <td>{user.lastActive}</td>
                   <td>
-                    <button type="button" className="secondary-button">View</button>
+                    <button type="button" className="secondary-button small-button" onClick={() => setSelectedUser(user)}>View access</button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {!filteredUsers.length && <p className="empty-state">No system users match these filters.</p>}
         </div>
+        {selectedUser && (
+          <div className="profile-detail" role="status">
+            <div className="profile-detail-heading">
+              <div className="avatar avatar-large">{selectedUser.name.split(' ').map((part) => part[0]).join('')}</div>
+              <div><strong>{selectedUser.name}</strong><span>{selectedUser.email}</span></div>
+            </div>
+            <div><span>Role</span><strong>{selectedUser.role}</strong></div>
+            <div><span>Last active</span><strong>{selectedUser.lastActive}</strong></div>
+            <span className={`status-badge ${selectedUser.status.toLowerCase()}`}>{selectedUser.status}</span>
+            <button type="button" className="text-button" onClick={() => setSelectedUser(null)}>Close access</button>
+          </div>
+        )}
       </div>
     </div>
   )

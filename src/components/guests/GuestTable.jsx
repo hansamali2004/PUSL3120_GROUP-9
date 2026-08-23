@@ -1,7 +1,6 @@
-function GuestTable({ guests }) {
+function GuestTable({ guests, onView }) {
   return (
-    <div className="panel">
-      <div className="table-wrapper">
+    <div className="table-wrapper">
         <table>
           <thead>
             <tr>
@@ -18,7 +17,12 @@ function GuestTable({ guests }) {
           <tbody>
             {guests.map((guest) => (
               <tr key={guest.id}>
-                <td>{guest.name}</td>
+                <td>
+                  <div className="identity-cell">
+                    <div className="avatar">{guest.name.split(' ').map((part) => part[0]).join('')}</div>
+                    <strong>{guest.name}</strong>
+                  </div>
+                </td>
                 <td>{guest.contact}</td>
                 <td>{guest.idNumber}</td>
                 <td>{guest.room}</td>
@@ -28,13 +32,13 @@ function GuestTable({ guests }) {
                   <span className={`status-badge ${guest.status.toLowerCase().replace(/\s+/g, '-')}`}>{guest.status}</span>
                 </td>
                 <td>
-                  <button type="button" className="secondary-button">View</button>
+                    <button type="button" className="secondary-button small-button" onClick={() => onView(guest)}>View profile</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+          {!guests.length && <p className="empty-state">No guest profiles match these filters.</p>}
     </div>
   )
 }

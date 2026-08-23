@@ -194,6 +194,18 @@ button {
   place-items: center;
 }
 
+.avatar-large {
+  width: 48px;
+  height: 48px;
+}
+
+.identity-cell,
+.profile-detail-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .user-name {
   font-weight: 700;
 }
@@ -339,6 +351,40 @@ button {
   margin: 16px 0 8px;
 }
 
+.empty-state {
+  color: var(--muted);
+  text-align: center;
+  padding: 18px;
+}
+
+.profile-detail {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel-alt);
+}
+
+.profile-detail-heading {
+  margin-right: auto;
+}
+
+.profile-detail-heading div:last-child,
+.profile-detail > div:not(.profile-detail-heading) {
+  display: grid;
+  gap: 3px;
+}
+
+.profile-detail-heading span,
+.profile-detail > div:not(.profile-detail-heading) span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
 .table-action-cell {
   display: flex;
   align-items: center;
@@ -454,6 +500,11 @@ th {
   padding: 10px 14px;
   font-weight: 600;
   transition: transform 0.2s ease;
+}
+
+.small-button {
+  padding: 8px 10px;
+  font-size: 0.8rem;
 }
 
 .primary-button {
